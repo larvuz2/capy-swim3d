@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { createCharacterBody, isGrounded } from './physics.js';
-import { updateCameraTarget } from './scene.js';
 import { params } from './gui.js';
+import { getCameraRotation } from './camera.js';
 
 // Create the character
 export function createCharacter(scene, world) {
@@ -84,12 +84,35 @@ export function updateCharacter(character, input) {
     // Get the current velocity
     const velocity = rigidBody.linvel();
     
-    // Calculate the movement direction
-    const moveDirection = new THREE.Vector3(
-        input.direction.right,
-        0,
-        -input.direction.forward
-    ).normalize();
+    // Get camera rotation for movement direction
+    const cameraRotation = getCameraRotation();
+    
+    // Calculate the movement direction relative to camera
+    const moveDirection = new THREE.Vector3(0, 0, 0);
+    
+    if (input.direction.forward !== 0 || input.direction.right !== 0) {
+        // Get forward and right directions based on camera rotation
+        const forward = new THREE.Vector3(
+            Math.sin(cameraRotation),
+            0,
+            Math.cos(cameraRotation)
+        );
+        
+        const right = new THREE.Vector3(
+            Math.sin(cameraRotation + Math.PI/2),
+            0,
+            Math.cos(cameraRotation + Math.PI/2)
+        );
+        
+        // Combine directions based on input
+        moveDirection.add(forward.multiplyScalar(input.direction.forward));
+        moveDirection.add(right.multiplyScalar(input.direction.right));
+        
+        // Normalize if moving
+        if (moveDirection.length() > 0) {
+            moveDirection.normalize();
+        }
+    }
     
     // Apply movement force if grounded
     if (character.grounded) {
@@ -140,8 +163,10 @@ export function updateCharacter(character, input) {
     if (moveDirection.length() > 0.1) {
         const targetRotation = Math.atan2(moveDirection.x, moveDirection.z);
         character.mesh.rotation.y = targetRotation;
+    } else {
+        // If not moving, align character with camera direction
+        character.mesh.rotation.y = cameraRotation;
     }
     
-    // Update the camera target to follow the character
-    updateCameraTarget(character.mesh.position);
+    // No need to update camera target as our third-person camera handles this
 }
