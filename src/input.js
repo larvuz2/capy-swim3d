@@ -1,6 +1,3 @@
-import * as THREE from 'three';
-import { getCameraRotation } from './camera.js';
-
 // Input state
 const keys = {
     forward: false,
@@ -111,20 +108,22 @@ function onPointerLockChange() {
 
 // Get the current input state
 export function getInput() {
-    // Calculate direction based on keys
+    // Calculate movement direction based on camera orientation
     const direction = {
         forward: 0,
         right: 0,
         up: 0
     };
     
-    // Simple key-based direction
-    if (keys.forward) direction.forward += 1;
-    if (keys.backward) direction.forward -= 1;
+    // Forward/backward movement (inverted)
+    if (keys.forward) direction.forward -= 1;
+    if (keys.backward) direction.forward += 1;
+    
+    // Left/right movement
     if (keys.right) direction.right += 1;
     if (keys.left) direction.right -= 1;
     
-    // Set jump
+    // Jump
     if (keys.jump) direction.up = 1;
     
     // Mouse movement (for camera rotation)
