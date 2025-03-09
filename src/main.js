@@ -1,12 +1,13 @@
-import { initScene, render, camera, controls } from './scene.js';
+import { initScene, render } from './scene.js';
 import { initPhysics, updatePhysics } from './physics.js';
 import { createCharacter, updateCharacter } from './character.js';
 import { initInput, getInput } from './input.js';
+import { initGUI } from './gui.js';
 
 // Initialize the application
 async function init() {
     // Initialize the scene
-    const { scene, renderer } = initScene();
+    const { scene, camera, renderer } = initScene();
     
     // Initialize the physics world
     const world = await initPhysics();
@@ -17,23 +18,14 @@ async function init() {
     // Create the character
     const character = createCharacter(scene, world);
     
-    // Set initial camera position behind character
-    const initialOffset = { x: 0, y: 2, z: 5 };
-    camera.position.set(
-        character.mesh.position.x + initialOffset.x,
-        character.mesh.position.y + initialOffset.y,
-        character.mesh.position.z + initialOffset.z
-    );
-    
-    // Set initial camera target to character
-    controls.target.copy(character.mesh.position);
-    controls.update();
+    // Initialize the GUI
+    const gui = initGUI(world, character);
     
     // Animation loop
     function animate() {
         requestAnimationFrame(animate);
         
-        // Get input state with camera-relative movement
+        // Get input state
         const input = getInput();
         
         // Update character based on input

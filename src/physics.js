@@ -1,4 +1,5 @@
 import * as RAPIER from '@dimforge/rapier3d-compat';
+import { params } from './gui.js';
 
 // Store the physics objects
 const physicsObjects = [];
@@ -8,8 +9,8 @@ export async function initPhysics() {
     // Initialize Rapier
     await RAPIER.init();
     
-    // Create a physics world
-    const gravity = { x: 0.0, y: -9.81, z: 0.0 };
+    // Create a physics world with gravity from params
+    const gravity = { x: 0.0, y: params.gravity, z: 0.0 };
     const world = new RAPIER.World(gravity);
     
     // Create the ground
@@ -93,8 +94,8 @@ export function createCharacterBody(world, position) {
     // Create a dynamic rigid body for the character
     const bodyDesc = RAPIER.RigidBodyDesc.dynamic()
         .setTranslation(position.x, position.y, position.z)
-        .setLinearDamping(0.5)
-        .setAngularDamping(0.5);
+        .setLinearDamping(params.linearDamping)
+        .setAngularDamping(params.angularDamping);
     
     const rigidBody = world.createRigidBody(bodyDesc);
     
@@ -103,8 +104,8 @@ export function createCharacterBody(world, position) {
     const capsuleRadius = 0.5; // Radius of the capsule
     
     const colliderDesc = RAPIER.ColliderDesc.capsule(capsuleHeight / 2, capsuleRadius);
-    colliderDesc.setFriction(0.7);
-    colliderDesc.setRestitution(0.2);
+    colliderDesc.setFriction(params.friction);
+    colliderDesc.setRestitution(params.restitution);
     
     const collider = world.createCollider(colliderDesc, rigidBody);
     

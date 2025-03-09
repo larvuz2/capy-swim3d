@@ -25,6 +25,24 @@
             border-radius: 5px;
             font-size: 14px;
         }
+        /* Custom styles for dat.GUI */
+        .dg.main {
+            position: absolute !important;
+            top: 10px !important;
+            right: 10px !important;
+            z-index: 1000;
+        }
+        .dg.main .close-button {
+            position: relative;
+        }
+        /* Make the GUI look like a sidebar */
+        .dg.main.a {
+            margin-right: 0 !important;
+            border-radius: 5px 0 0 5px;
+            border-right: none;
+            max-height: 95vh;
+            overflow-y: auto;
+        }
     </style>
 </head>
 <body>

@@ -1,11 +1,7 @@
 import * as THREE from 'three';
 import { createCharacterBody, isGrounded } from './physics.js';
 import { updateCameraTarget } from './scene.js';
-
-// Character properties
-const MOVE_SPEED = 5.0;
-const JUMP_FORCE = 10.0;
-const MAX_VELOCITY = 10.0;
+import { params } from './gui.js';
 
 // Create the character
 export function createCharacter(scene, world) {
@@ -88,49 +84,44 @@ export function updateCharacter(character, input) {
     // Get the current velocity
     const velocity = rigidBody.linvel();
     
-    // Use the moveVector directly from input for camera-relative movement
+    // Calculate the movement direction
     const moveDirection = new THREE.Vector3(
         input.direction.right,
         0,
         -input.direction.forward
-    );
-    
-    // Normalize if there's movement
-    if (moveDirection.lengthSq() > 0) {
-        moveDirection.normalize();
-    }
+    ).normalize();
     
     // Apply movement force if grounded
     if (character.grounded) {
         // Apply movement force
         rigidBody.applyImpulse(
             { 
-                x: moveDirection.x * MOVE_SPEED, 
+                x: moveDirection.x * params.movementSpeed, 
                 y: 0, 
-                z: moveDirection.z * MOVE_SPEED 
+                z: moveDirection.z * params.movementSpeed 
             }, 
             true
         );
         
         // Apply jump force
         if (input.jump) {
-            rigidBody.applyImpulse({ x: 0, y: JUMP_FORCE, z: 0 }, true);
+            rigidBody.applyImpulse({ x: 0, y: params.jumpForce, z: 0 }, true);
         }
     } else {
         // Apply smaller movement force in air for air control
         rigidBody.applyImpulse(
             { 
-                x: moveDirection.x * MOVE_SPEED * 0.2, 
+                x: moveDirection.x * params.movementSpeed * params.airControlFactor, 
                 y: 0, 
-                z: moveDirection.z * MOVE_SPEED * 0.2 
+                z: moveDirection.z * params.movementSpeed * params.airControlFactor 
             }, 
             true
         );
     }
     
     // Limit horizontal velocity
-    if (Math.sqrt(velocity.x * velocity.x + velocity.z * velocity.z) > MAX_VELOCITY) {
-        const horizontalVelocity = new THREE.Vector2(velocity.x, velocity.z).normalize().multiplyScalar(MAX_VELOCITY);
+    if (Math.sqrt(velocity.x * velocity.x + velocity.z * velocity.z) > params.maxVelocity) {
+        const horizontalVelocity = new THREE.Vector2(velocity.x, velocity.z).normalize().multiplyScalar(params.maxVelocity);
         rigidBody.setLinvel(
             { 
                 x: horizontalVelocity.x, 
@@ -148,11 +139,7 @@ export function updateCharacter(character, input) {
     // Rotate the character in the direction of movement if moving
     if (moveDirection.length() > 0.1) {
         const targetRotation = Math.atan2(moveDirection.x, moveDirection.z);
-        
-        // Smoothly rotate the character (lerp)
-        const currentRotation = character.mesh.rotation.y;
-        const rotationSpeed = 0.15; // Adjust for smoother rotation
-        character.mesh.rotation.y = currentRotation + (targetRotation - currentRotation) * rotationSpeed;
+        character.mesh.rotation.y = targetRotation;
     }
     
     // Update the camera target to follow the character
