@@ -1,0 +1,8 @@
+Place your texture files in this directory:
+
+- capybara_texture.png - Main texture
+- capybara_normal.png - Normal map (if used)
+- capybara_roughness.png - Roughness map (if used)
+- capybara_metalness.png - Metalness map (if used)
+
+The exact filenames should match what's referenced in your 3D model file.
