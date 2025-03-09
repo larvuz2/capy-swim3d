@@ -4,6 +4,7 @@ import { createCharacter, updateCharacter } from './character.js';
 import { initInput, getInput } from './input.js';
 import { initGUI } from './gui.js';
 import { initThirdPersonCamera, updateCamera } from './camera.js';
+import * as THREE from 'three';
 
 // Initialize the application
 async function init() {
@@ -25,15 +26,21 @@ async function init() {
     // Initialize the GUI
     const gui = initGUI(world, character);
     
+    // Create a clock for animation timing
+    const clock = new THREE.Clock();
+    
     // Animation loop
     function animate() {
         requestAnimationFrame(animate);
+        
+        // Get delta time for animations
+        const deltaTime = clock.getDelta();
         
         // Get input state
         const input = getInput();
         
         // Update character based on input
-        updateCharacter(character, input);
+        updateCharacter(character, input, deltaTime);
         
         // Update camera
         updateCamera();
