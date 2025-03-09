@@ -4,7 +4,8 @@ import { params } from './gui.js';
 // Camera parameters
 export const cameraParams = {
     distance: 10,      // Distance behind character
-    height: 5,         // Height above character
+    height: 7,         // Height above character (increased from 5)
+    heightOffset: 2,   // Additional height offset from character base
     smoothness: 0.1,   // Camera smoothness (0-1)
     rotationSpeed: 0.002, // Mouse rotation sensitivity
     lookAtHeight: 1.5, // Height offset for lookAt point
@@ -65,7 +66,7 @@ function updateCameraPosition() {
     // Calculate camera offset based on distance, height and rotation
     const offset = new THREE.Vector3(
         Math.sin(currentRotationY) * cameraParams.distance,
-        cameraParams.height,
+        cameraParams.height + cameraParams.heightOffset, // Add heightOffset to ensure minimum height
         Math.cos(currentRotationY) * cameraParams.distance
     );
     
