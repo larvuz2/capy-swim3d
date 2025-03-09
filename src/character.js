@@ -88,12 +88,17 @@ export function updateCharacter(character, input) {
     // Get the current velocity
     const velocity = rigidBody.linvel();
     
-    // Calculate the movement direction
+    // Use the moveVector directly from input for camera-relative movement
     const moveDirection = new THREE.Vector3(
         input.direction.right,
         0,
         -input.direction.forward
-    ).normalize();
+    );
+    
+    // Normalize if there's movement
+    if (moveDirection.lengthSq() > 0) {
+        moveDirection.normalize();
+    }
     
     // Apply movement force if grounded
     if (character.grounded) {
@@ -143,7 +148,11 @@ export function updateCharacter(character, input) {
     // Rotate the character in the direction of movement if moving
     if (moveDirection.length() > 0.1) {
         const targetRotation = Math.atan2(moveDirection.x, moveDirection.z);
-        character.mesh.rotation.y = targetRotation;
+        
+        // Smoothly rotate the character (lerp)
+        const currentRotation = character.mesh.rotation.y;
+        const rotationSpeed = 0.15; // Adjust for smoother rotation
+        character.mesh.rotation.y = currentRotation + (targetRotation - currentRotation) * rotationSpeed;
     }
     
     // Update the camera target to follow the character
