@@ -64,6 +64,7 @@ export function initGUI(world, character) {
     // Add camera parameters
     cameraFolder.add(cameraParams, 'distance').min(1).max(20).step(0.1).name('Camera Distance');
     cameraFolder.add(cameraParams, 'height').min(1).max(10).step(0.1).name('Camera Height');
+    cameraFolder.add(cameraParams, 'heightOffset').min(0).max(5).step(0.1).name('Height Offset');
     cameraFolder.add(cameraParams, 'smoothness').min(0.01).max(1).step(0.01).name('Camera Smoothness');
     cameraFolder.add(cameraParams, 'rotationSpeed').min(0.0005).max(0.01).step(0.0005).name('Rotation Speed');
     cameraFolder.add(cameraParams, 'lookAtHeight').min(0).max(5).step(0.1).name('Look At Height');
