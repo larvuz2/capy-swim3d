@@ -1,3 +1,6 @@
+import * as THREE from 'three';
+import { getCameraDirection, getCameraRight } from './scene.js';
+
 // Input state
 const keys = {
     forward: false,
@@ -106,24 +109,34 @@ function onPointerLockChange() {
     mouse.locked = document.pointerLockElement === document.body;
 }
 
-// Get the current input state
+// Get the current input state with camera-relative movement
 export function getInput() {
-    // Calculate movement direction based on camera orientation
+    // Get camera directions
+    const cameraForward = getCameraDirection();
+    const cameraRight = getCameraRight();
+    
+    // Initialize movement vector
+    const moveDirection = new THREE.Vector3(0, 0, 0);
+    
+    // Apply camera-relative movement
+    if (keys.forward) moveDirection.add(cameraForward);
+    if (keys.backward) moveDirection.sub(cameraForward);
+    if (keys.right) moveDirection.add(cameraRight);
+    if (keys.left) moveDirection.sub(cameraRight);
+    
+    // Normalize if there's movement
+    if (moveDirection.lengthSq() > 0) {
+        moveDirection.normalize();
+    }
+    
+    // Create direction object
     const direction = {
-        forward: 0,
-        right: 0,
+        forward: -moveDirection.z, // Negate z for correct forward direction
+        right: moveDirection.x,
         up: 0
     };
     
-    // Forward/backward movement
-    if (keys.forward) direction.forward += 1;
-    if (keys.backward) direction.forward -= 1;
-    
-    // Left/right movement
-    if (keys.right) direction.right += 1;
-    if (keys.left) direction.right -= 1;
-    
-    // Jump
+    // Set jump
     if (keys.jump) direction.up = 1;
     
     // Mouse movement (for camera rotation)
@@ -139,6 +152,7 @@ export function getInput() {
     return {
         direction,
         mouseLook,
-        jump: keys.jump
+        jump: keys.jump,
+        moveVector: moveDirection // Add the raw movement vector for character rotation
     };
 }
