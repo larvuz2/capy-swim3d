@@ -1,4 +1,5 @@
 import * as dat from 'dat.gui';
+import { cameraParams } from './camera.js';
 
 // Create a params object to store all adjustable parameters
 export const params = {
@@ -29,6 +30,7 @@ export function initGUI(world, character) {
     const physicsFolder = gui.addFolder('Physics');
     const movementFolder = gui.addFolder('Movement');
     const characterPhysicsFolder = gui.addFolder('Character Physics');
+    const cameraFolder = gui.addFolder('Camera');
     
     // Add physics parameters
     physicsFolder.add(params, 'gravity').min(-20).max(0).step(0.1).name('Gravity').onChange((value) => {
@@ -59,10 +61,18 @@ export function initGUI(world, character) {
         character.physicsBody.collider.setRestitution(value);
     });
     
+    // Add camera parameters
+    cameraFolder.add(cameraParams, 'distance').min(1).max(20).step(0.1).name('Camera Distance');
+    cameraFolder.add(cameraParams, 'height').min(1).max(10).step(0.1).name('Camera Height');
+    cameraFolder.add(cameraParams, 'smoothness').min(0.01).max(1).step(0.01).name('Camera Smoothness');
+    cameraFolder.add(cameraParams, 'rotationSpeed').min(0.0005).max(0.01).step(0.0005).name('Rotation Speed');
+    cameraFolder.add(cameraParams, 'lookAtHeight').min(0).max(5).step(0.1).name('Look At Height');
+    
     // Open all folders by default
     physicsFolder.open();
     movementFolder.open();
     characterPhysicsFolder.open();
+    cameraFolder.open();
     
     // Position the GUI on the right side
     gui.domElement.style.position = 'absolute';
