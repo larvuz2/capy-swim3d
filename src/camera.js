@@ -4,13 +4,12 @@ import { params } from './gui.js';
 // Camera parameters
 export const cameraParams = {
     distance: 10,      // Distance behind character
-    height: 7,         // Height above character (increased from 5)
-    heightOffset: 2,   // Additional height offset from character base
+    height: 7,         // Height above character
+    minHeight: 3,      // Minimum height from ground
+    angle: 0.3,        // Camera angle (in radians) - looking down at character
     smoothness: 0.1,   // Camera smoothness (0-1)
     rotationSpeed: 0.002, // Mouse rotation sensitivity
     lookAtHeight: 1.5, // Height offset for lookAt point
-    minPolarAngle: 0.1,  // Minimum angle (looking up)
-    maxPolarAngle: Math.PI / 2 - 0.1, // Maximum angle (looking down)
 };
 
 let camera;
@@ -19,7 +18,6 @@ let mouseX = 0;
 let mouseY = 0;
 let targetRotationY = 0;
 let currentRotationY = 0;
-let verticalAngle = 0;
 
 // Initialize the third-person camera
 export function initThirdPersonCamera(cameraRef, targetRef) {
@@ -44,11 +42,6 @@ function onMouseMove(event) {
         
         // Update target rotation based on mouse X movement
         targetRotationY -= mouseX * cameraParams.rotationSpeed;
-        
-        // Update vertical angle based on mouse Y movement (with limits)
-        verticalAngle -= mouseY * cameraParams.rotationSpeed;
-        verticalAngle = Math.max(cameraParams.minPolarAngle, 
-                                Math.min(cameraParams.maxPolarAngle, verticalAngle));
     }
 }
 
@@ -63,23 +56,32 @@ function updateCameraPosition() {
         cameraParams.smoothness
     );
     
-    // Calculate camera offset based on distance, height and rotation
-    const offset = new THREE.Vector3(
-        Math.sin(currentRotationY) * cameraParams.distance,
-        cameraParams.height + cameraParams.heightOffset, // Add heightOffset to ensure minimum height
-        Math.cos(currentRotationY) * cameraParams.distance
-    );
-    
     // Get target position (character position)
     const targetPosition = target.position.clone();
     
-    // Calculate desired camera position
-    const desiredPosition = targetPosition.clone().sub(offset);
+    // Calculate horizontal distance based on height and angle
+    const horizontalDistance = cameraParams.distance;
+    
+    // Calculate camera position in a way that ensures it's above the character
+    // Use spherical coordinates for better control
+    const phi = Math.PI/2 - cameraParams.angle; // Angle from y-axis (0 = directly above)
+    const theta = currentRotationY; // Horizontal angle
+    
+    // Convert spherical to cartesian coordinates
+    const x = horizontalDistance * Math.sin(phi) * Math.sin(theta) + targetPosition.x;
+    const z = horizontalDistance * Math.sin(phi) * Math.cos(theta) + targetPosition.z;
+    
+    // Calculate height ensuring it's always above the character and ground
+    const effectiveHeight = Math.max(cameraParams.height, cameraParams.minHeight);
+    const y = targetPosition.y + effectiveHeight;
+    
+    // Set desired camera position
+    const desiredPosition = new THREE.Vector3(x, y, z);
     
     // Smoothly move camera to desired position
     camera.position.lerp(desiredPosition, cameraParams.smoothness);
     
-    // Calculate lookAt point (slightly above character)
+    // Calculate lookAt point (at character position plus lookAtHeight)
     const lookAtPoint = targetPosition.clone().add(
         new THREE.Vector3(0, cameraParams.lookAtHeight, 0)
     );
