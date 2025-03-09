@@ -1,0 +1,8 @@
+Place your animation files in this directory:
+
+- capybara_idle.fbx - Idle animation
+- capybara_walk.fbx - Walk animation (optional)
+- capybara_run.fbx - Run animation (optional)
+- capybara_jump.fbx - Jump animation (optional)
+
+The code will automatically look for the idle animation file here if it's not included in the main model. 

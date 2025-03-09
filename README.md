@@ -14,6 +14,7 @@ A simple physics-based character controller using Rapier physics engine and Thre
 - Environmental collision handling
 - Netlify deployment support
 - Custom 3D character model support (capybara)
+- Support for separate animation files
 
 ## Controls
 
@@ -56,13 +57,21 @@ npm install
 2. If your model uses external textures, place them in the `models/textures/` directory:
    - Example: `models/textures/capybara_texture.png`
 
-3. The code will automatically try to load the model in the following order:
+3. If your model doesn't include animations, place animation files in the `models/animations/` directory:
+   - Example: `models/animations/capybara_idle.fbx` or `models/animations/capybara_idle.glb`
+
+4. The code will automatically try to load the model in the following order:
    - GLTF/GLB (preferred)
    - FBX
    - OBJ (with MTL materials)
    - DAE (Collada)
 
-4. If your model needs position or scale adjustments, you can modify the relevant parameters in `src/character.js`
+5. For animations, the code will try:
+   - Animations embedded in the model file
+   - Separate FBX animation file
+   - Separate GLTF/GLB animation file
+
+6. If your model needs position or scale adjustments, you can modify the relevant parameters in `src/character.js`
 
 ### Running the Application
 
@@ -95,6 +104,7 @@ The built files will be in the `dist` directory.
   - `scene.js` - Three.js scene setup
 - `models/` - Directory for 3D model files
   - `textures/` - Directory for texture files
+  - `animations/` - Directory for separate animation files
 
 ## How It Works
 
@@ -102,11 +112,12 @@ The built files will be in the `dist` directory.
 2. A ground plane and character capsule are created in both the physics world and the 3D scene
 3. The capybara 3D model is loaded and attached to the capsule collider
 4. The capsule is made invisible, so only the capybara model is visible
-5. Input from WASD and space is captured and converted to movement directions
-6. The character controller applies forces or velocities to the physics body based on input
-7. The 3D mesh positions are updated based on the physics simulation
-8. The camera follows the character
-9. If the model includes animations, the idle animation is played
+5. If the model doesn't include animations, separate animation files are loaded
+6. Input from WASD and space is captured and converted to movement directions
+7. The character controller applies forces or velocities to the physics body based on input
+8. The 3D mesh positions are updated based on the physics simulation
+9. The camera follows the character
+10. If animations are available, the idle animation is played
 
 ## Deployment
 

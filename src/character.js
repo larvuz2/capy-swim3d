@@ -10,6 +10,8 @@ import { getCameraRotation } from './camera.js';
 
 // Animation mixer for the capybara model
 let mixer;
+// Reference to the loaded model
+let capybaraModel;
 
 // Create the character
 export function createCharacter(scene, world) {
@@ -67,7 +69,7 @@ function loadGLTFModel(capsuleMesh) {
     const loader = new GLTFLoader();
     
     loader.load('models/capybara.glb', (gltf) => {
-        const capybaraModel = gltf.scene;
+        capybaraModel = gltf.scene;
         
         // Add the capybara model to the capsule mesh
         capsuleMesh.add(capybaraModel);
@@ -78,14 +80,17 @@ function loadGLTFModel(capsuleMesh) {
         // Adjust scale if needed
         // capybaraModel.scale.set(0.5, 0.5, 0.5);
         
-        // Set up animations if available
+        // Set up animations if available in the model
         if (gltf.animations && gltf.animations.length > 0) {
             mixer = new THREE.AnimationMixer(capybaraModel);
             const idleAction = mixer.clipAction(gltf.animations[0]); // Assumes first animation is idle
             idleAction.play();
             
             // Log available animations for debugging
-            console.log('Loaded animations:', gltf.animations);
+            console.log('Loaded animations from model:', gltf.animations);
+        } else {
+            // If no animations in the model, try to load separate animation file
+            loadSeparateAnimation(capybaraModel);
         }
     }, 
     // Progress callback
@@ -99,11 +104,64 @@ function loadGLTFModel(capsuleMesh) {
     });
 }
 
+// Load separate animation file
+function loadSeparateAnimation(model) {
+    if (!model) return;
+    
+    console.log('Loading separate animation file...');
+    
+    // Try to load the idle animation from FBX file
+    const animLoader = new FBXLoader();
+    animLoader.load('models/animations/capybara_idle.fbx', (animationObject) => {
+        // Create animation mixer
+        mixer = new THREE.AnimationMixer(model);
+        
+        // Get the animation clip
+        if (animationObject.animations && animationObject.animations.length > 0) {
+            const idleClip = animationObject.animations[0];
+            const idleAction = mixer.clipAction(idleClip);
+            idleAction.play();
+            console.log('Loaded separate idle animation');
+        } else {
+            console.warn('No animations found in the separate animation file');
+        }
+    }, 
+    // Progress callback
+    (xhr) => {
+        console.log('Animation: ' + (xhr.loaded / xhr.total * 100) + '% loaded');
+    },
+    // Error callback
+    (error) => {
+        console.warn('Error loading separate animation file:', error);
+        
+        // Try alternative animation formats
+        tryAlternativeAnimationFormats(model);
+    });
+}
+
+// Try to load animations in different formats
+function tryAlternativeAnimationFormats(model) {
+    // Try GLTF animation
+    const gltfLoader = new GLTFLoader();
+    gltfLoader.load('models/animations/capybara_idle.glb', (gltf) => {
+        if (gltf.animations && gltf.animations.length > 0) {
+            mixer = new THREE.AnimationMixer(model);
+            const idleAction = mixer.clipAction(gltf.animations[0]);
+            idleAction.play();
+            console.log('Loaded GLTF animation');
+        }
+    }, undefined, (error) => {
+        console.warn('Error loading GLTF animation:', error);
+    });
+}
+
 // Load FBX model as fallback
 function loadFBXModel(capsuleMesh) {
     const loader = new FBXLoader();
     
     loader.load('models/capybara.fbx', (fbx) => {
+        capybaraModel = fbx;
+        
         // Add the capybara model to the capsule mesh
         capsuleMesh.add(fbx);
         
@@ -118,6 +176,10 @@ function loadFBXModel(capsuleMesh) {
             mixer = new THREE.AnimationMixer(fbx);
             const idleAction = mixer.clipAction(fbx.animations[0]);
             idleAction.play();
+            console.log('Loaded animations from FBX model');
+        } else {
+            // If no animations in the model, try to load separate animation file
+            loadSeparateAnimation(fbx);
         }
     }, 
     // Progress callback
@@ -142,6 +204,8 @@ function loadOBJModel(capsuleMesh) {
         objLoader.setMaterials(materials);
         
         objLoader.load('models/capybara.obj', (obj) => {
+            capybaraModel = obj;
+            
             // Add the capybara model to the capsule mesh
             capsuleMesh.add(obj);
             
@@ -150,6 +214,9 @@ function loadOBJModel(capsuleMesh) {
             
             // Adjust scale if needed
             // obj.scale.set(0.5, 0.5, 0.5);
+            
+            // OBJ doesn't support animations, so try to load separate animation
+            loadSeparateAnimation(obj);
         }, 
         // Progress callback
         (xhr) => {
@@ -165,7 +232,11 @@ function loadOBJModel(capsuleMesh) {
         
         const objLoader = new OBJLoader();
         objLoader.load('models/capybara.obj', (obj) => {
+            capybaraModel = obj;
             capsuleMesh.add(obj);
+            
+            // OBJ doesn't support animations, so try to load separate animation
+            loadSeparateAnimation(obj);
         }, undefined, (error) => {
             console.warn('Error loading OBJ model, trying DAE:', error);
             loadDAEModel(capsuleMesh);
@@ -179,6 +250,7 @@ function loadDAEModel(capsuleMesh) {
     
     loader.load('models/capybara.dae', (collada) => {
         const dae = collada.scene;
+        capybaraModel = dae;
         
         // Add the capybara model to the capsule mesh
         capsuleMesh.add(dae);
@@ -188,6 +260,17 @@ function loadDAEModel(capsuleMesh) {
         
         // Adjust scale if needed
         // dae.scale.set(0.5, 0.5, 0.5);
+        
+        // Check if there are animations in the DAE file
+        if (collada.animations && collada.animations.length > 0) {
+            mixer = new THREE.AnimationMixer(dae);
+            const idleAction = mixer.clipAction(collada.animations[0]);
+            idleAction.play();
+            console.log('Loaded animations from DAE model');
+        } else {
+            // If no animations in the model, try to load separate animation file
+            loadSeparateAnimation(dae);
+        }
     }, 
     // Progress callback
     (xhr) => {
