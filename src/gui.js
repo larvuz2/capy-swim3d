@@ -3,18 +3,18 @@ import * as dat from 'dat.gui';
 // Create a params object to store all adjustable parameters
 export const params = {
     // Physics parameters
-    gravity: -9.81,
+    gravity: -18.5,
     
     // Character movement parameters
-    movementSpeed: 5.0,
-    jumpForce: 10.0,
-    maxVelocity: 10.0,
+    movementSpeed: 1.0,
+    jumpForce: 1.0,
+    maxVelocity: 2.4,
     
     // Character physics parameters
-    linearDamping: 0.5,
-    angularDamping: 0.5,
-    friction: 0.7,
-    restitution: 0.2,
+    linearDamping: 1.0,
+    angularDamping: 0.25,
+    friction: 1.0,
+    restitution: 1.0,
     
     // Air control
     airControlFactor: 0.2
