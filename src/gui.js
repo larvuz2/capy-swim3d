@@ -4,7 +4,7 @@ import { cameraParams } from './camera.js';
 // Create a params object to store all adjustable parameters
 export const params = {
     // Physics parameters
-    gravity: -18.5,
+    gravity: -18,      // Updated from -18.5
     
     // Character movement parameters
     movementSpeed: 1.0,
@@ -13,8 +13,8 @@ export const params = {
     
     // Character physics parameters
     linearDamping: 1.0,
-    angularDamping: 0.25,
-    friction: 1.0,
+    angularDamping: 1.0,  // Updated from 0.25
+    friction: 0.68,       // Updated from 1.0
     restitution: 1.0,
     
     // Air control
