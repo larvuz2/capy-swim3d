@@ -1,0 +1,8 @@
+Place your 3D model files in this directory:
+
+- capybara.glb (or .gltf) - Primary model format, recommended
+- capybara.fbx - Alternative format
+- capybara.obj + capybara.mtl - Alternative format
+- capybara.dae - Alternative format
+
+See README.md for more details on model requirements and setup. 
