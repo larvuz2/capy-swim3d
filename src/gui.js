@@ -4,7 +4,7 @@ import { cameraParams } from './camera.js';
 // Create a params object to store all adjustable parameters
 export const params = {
     // Physics parameters
-    gravity: -18,      // Updated from -18.5
+    gravity: -18.5,
     
     // Character movement parameters
     movementSpeed: 1.0,
@@ -13,8 +13,8 @@ export const params = {
     
     // Character physics parameters
     linearDamping: 1.0,
-    angularDamping: 1.0,  // Updated from 0.25
-    friction: 0.68,       // Updated from 1.0
+    angularDamping: 0.25,
+    friction: 1.0,
     restitution: 1.0,
     
     // Air control
@@ -63,9 +63,7 @@ export function initGUI(world, character) {
     
     // Add camera parameters
     cameraFolder.add(cameraParams, 'distance').min(1).max(20).step(0.1).name('Camera Distance');
-    cameraFolder.add(cameraParams, 'height').min(1).max(15).step(0.1).name('Camera Height');
-    cameraFolder.add(cameraParams, 'minHeight').min(1).max(10).step(0.1).name('Min Height');
-    cameraFolder.add(cameraParams, 'angle').min(0).max(Math.PI/2).step(0.01).name('Camera Angle');
+    cameraFolder.add(cameraParams, 'height').min(1).max(10).step(0.1).name('Camera Height');
     cameraFolder.add(cameraParams, 'smoothness').min(0.01).max(1).step(0.01).name('Camera Smoothness');
     cameraFolder.add(cameraParams, 'rotationSpeed').min(0.0005).max(0.01).step(0.0005).name('Rotation Speed');
     cameraFolder.add(cameraParams, 'lookAtHeight').min(0).max(5).step(0.1).name('Look At Height');
