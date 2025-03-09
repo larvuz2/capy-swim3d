@@ -1,6 +1,6 @@
 # Physics-Based Character Controller
 
-A simple physics-based character controller using Rapier physics engine and Three.js for rendering. This project demonstrates how to create a character that responds to WASD movement and space for jumping, with realistic physics simulation and a third-person camera system.
+A simple physics-based character controller using Rapier physics engine and Three.js for rendering. This project demonstrates how to create a character that responds to WASD movement and space for jumping, with realistic physics simulation.
 
 ## Features
 
@@ -9,20 +9,21 @@ A simple physics-based character controller using Rapier physics engine and Thre
 - Capsule collider for the character
 - Ground collision detection
 - 3D rendering with Three.js
-- Third-person camera system
-- Camera-relative movement (character moves in the direction the camera is facing)
-- Smooth character transitions and rotation
+- Orbit camera controls
+- Smooth character transitions
 - Environmental collision handling
 - Netlify deployment support
+- Custom 3D character model support (capybara)
+- Support for separate animation files
 
 ## Controls
 
-- W: Move forward (relative to camera direction)
-- A: Move left (relative to camera direction)
-- S: Move backward (relative to camera direction)
-- D: Move right (relative to camera direction)
+- W: Move forward
+- A: Move left
+- S: Move backward
+- D: Move right
 - Space: Jump
-- Mouse: Rotate camera around character
+- Mouse: Rotate camera
 
 ## Technologies Used
 
@@ -46,6 +47,31 @@ A simple physics-based character controller using Rapier physics engine and Thre
 ```bash
 npm install
 ```
+
+### Adding Your 3D Capybara Model
+
+1. Place your 3D model files in the `models/` directory:
+   - Supported formats: GLTF/GLB (recommended), FBX, OBJ, DAE
+   - Example: `models/capybara.glb`
+   
+2. If your model uses external textures, place them in the `models/textures/` directory:
+   - Example: `models/textures/capybara_texture.png`
+
+3. If your model doesn't include animations, place animation files in the `models/animations/` directory:
+   - Example: `models/animations/capybara_idle.fbx` or `models/animations/capybara_idle.glb`
+
+4. The code will automatically try to load the model in the following order:
+   - GLTF/GLB (preferred)
+   - FBX
+   - OBJ (with MTL materials)
+   - DAE (Collada)
+
+5. For animations, the code will try:
+   - Animations embedded in the model file
+   - Separate FBX animation file
+   - Separate GLTF/GLB animation file
+
+6. If your model needs position or scale adjustments, you can modify the relevant parameters in `src/character.js`
 
 ### Running the Application
 
@@ -74,28 +100,24 @@ The built files will be in the `dist` directory.
   - `main.js` - Entry point
   - `physics.js` - Rapier physics setup
   - `character.js` - Character controller
-  - `input.js` - Input handling with camera-relative movement
-  - `scene.js` - Three.js scene setup and third-person camera configuration
+  - `input.js` - Input handling
+  - `scene.js` - Three.js scene setup
+- `models/` - Directory for 3D model files
+  - `textures/` - Directory for texture files
+  - `animations/` - Directory for separate animation files
 
 ## How It Works
 
 1. The physics world is initialized with Rapier
 2. A ground plane and character capsule are created in both the physics world and the 3D scene
-3. The third-person camera is configured to follow the character at a fixed distance
-4. Input from WASD and space is captured and converted to movement directions relative to the camera's orientation
-5. The character controller applies forces or velocities to the physics body based on input
-6. The 3D mesh positions are updated based on the physics simulation
-7. The camera follows the character and can be rotated around it with the mouse
-
-## Third-Person Camera System
-
-The third-person camera system in this project:
-
-- Maintains a fixed distance from the character
-- Follows the character as it moves through the world
-- Allows rotation around the character using the mouse
-- Ensures character movement is relative to the camera's orientation (e.g., pressing W always moves forward in the direction the camera is facing)
-- Smoothly transitions as the character moves and rotates
+3. The capybara 3D model is loaded and attached to the capsule collider
+4. The capsule is made invisible, so only the capybara model is visible
+5. If the model doesn't include animations, separate animation files are loaded
+6. Input from WASD and space is captured and converted to movement directions
+7. The character controller applies forces or velocities to the physics body based on input
+8. The 3D mesh positions are updated based on the physics simulation
+9. The camera follows the character
+10. If animations are available, the idle animation is played
 
 ## Deployment
 
