@@ -1,6 +1,6 @@
 # Physics-Based Character Controller
 
-A simple physics-based character controller using Rapier physics engine and Three.js for rendering. This project demonstrates how to create a character that responds to WASD movement and space for jumping, with realistic physics simulation.
+A simple physics-based character controller using Rapier physics engine and Three.js for rendering. This project demonstrates how to create a character that responds to WASD movement and space for jumping, with realistic physics simulation and a third-person camera system.
 
 ## Features
 
@@ -9,19 +9,20 @@ A simple physics-based character controller using Rapier physics engine and Thre
 - Capsule collider for the character
 - Ground collision detection
 - 3D rendering with Three.js
-- Orbit camera controls
-- Smooth character transitions
+- Third-person camera system
+- Camera-relative movement (character moves in the direction the camera is facing)
+- Smooth character transitions and rotation
 - Environmental collision handling
 - Netlify deployment support
 
 ## Controls
 
-- W: Move forward
-- A: Move left
-- S: Move backward
-- D: Move right
+- W: Move forward (relative to camera direction)
+- A: Move left (relative to camera direction)
+- S: Move backward (relative to camera direction)
+- D: Move right (relative to camera direction)
 - Space: Jump
-- Mouse: Rotate camera
+- Mouse: Rotate camera around character
 
 ## Technologies Used
 
@@ -73,17 +74,28 @@ The built files will be in the `dist` directory.
   - `main.js` - Entry point
   - `physics.js` - Rapier physics setup
   - `character.js` - Character controller
-  - `input.js` - Input handling
-  - `scene.js` - Three.js scene setup
+  - `input.js` - Input handling with camera-relative movement
+  - `scene.js` - Three.js scene setup and third-person camera configuration
 
 ## How It Works
 
 1. The physics world is initialized with Rapier
 2. A ground plane and character capsule are created in both the physics world and the 3D scene
-3. Input from WASD and space is captured and converted to movement directions
-4. The character controller applies forces or velocities to the physics body based on input
-5. The 3D mesh positions are updated based on the physics simulation
-6. The camera follows the character
+3. The third-person camera is configured to follow the character at a fixed distance
+4. Input from WASD and space is captured and converted to movement directions relative to the camera's orientation
+5. The character controller applies forces or velocities to the physics body based on input
+6. The 3D mesh positions are updated based on the physics simulation
+7. The camera follows the character and can be rotated around it with the mouse
+
+## Third-Person Camera System
+
+The third-person camera system in this project:
+
+- Maintains a fixed distance from the character
+- Follows the character as it moves through the world
+- Allows rotation around the character using the mouse
+- Ensures character movement is relative to the camera's orientation (e.g., pressing W always moves forward in the direction the camera is facing)
+- Smoothly transitions as the character moves and rotates
 
 ## Deployment
 
