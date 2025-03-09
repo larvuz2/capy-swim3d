@@ -1,10 +1,4 @@
 import * as THREE from 'three';
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
-
-// Camera and controls references
-let camera;
-let controls;
-let cameraOffset = new THREE.Vector3(0, 2, 5); // Default camera offset (behind and above)
 
 export function initScene() {
     // Create the scene
@@ -12,7 +6,7 @@ export function initScene() {
     scene.background = new THREE.Color(0x87ceeb); // Sky blue background
     
     // Create the camera
-    camera = new THREE.PerspectiveCamera(
+    const camera = new THREE.PerspectiveCamera(
         75, 
         window.innerWidth / window.innerHeight, 
         0.1, 
@@ -29,18 +23,6 @@ export function initScene() {
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.shadowMap.enabled = true;
-    
-    // Configure orbit controls for third-person view
-    controls = new OrbitControls(camera, canvas);
-    controls.enableDamping = true;
-    controls.dampingFactor = 0.05;
-    
-    // Configure for third-person camera
-    controls.minDistance = 5; // Minimum distance from target
-    controls.maxDistance = 5; // Set equal to minDistance for fixed distance
-    controls.enableZoom = false; // Disable zooming to maintain consistent distance
-    controls.enablePan = false; // Disable panning for a focused third-person experience
-    controls.maxPolarAngle = Math.PI / 2 - 0.1; // Prevent camera from going below ground
     
     // Add lights
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
@@ -127,39 +109,5 @@ function addObstacles(scene) {
 }
 
 export function render(scene, camera, renderer) {
-    controls.update(); // Update orbit controls
     renderer.render(scene, camera);
 }
-
-// Function to update camera to follow the character
-export function updateCameraTarget(position) {
-    // Update the orbit controls target to follow the character
-    controls.target.copy(position);
-}
-
-// Get the camera's forward direction (projected onto XZ plane)
-export function getCameraDirection() {
-    const direction = new THREE.Vector3();
-    camera.getWorldDirection(direction);
-    
-    // Project onto XZ plane (horizontal)
-    direction.y = 0;
-    direction.normalize();
-    
-    return direction;
-}
-
-// Get the camera's right direction
-export function getCameraRight() {
-    const forward = getCameraDirection();
-    const right = new THREE.Vector3();
-    
-    // Right is perpendicular to forward and up
-    right.crossVectors(forward, new THREE.Vector3(0, 1, 0));
-    right.normalize();
-    
-    return right;
-}
-
-// Export camera and controls for use in other modules
-export { camera, controls };
