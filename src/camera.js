@@ -62,18 +62,17 @@ function updateCameraPosition() {
         cameraParams.smoothness
     );
     
-    // Calculate camera offset based on distance, height and rotation
-    const offset = new THREE.Vector3(
-        Math.sin(currentRotationY) * cameraParams.distance,
-        cameraParams.height,
-        Math.cos(currentRotationY) * cameraParams.distance
-    );
-    
     // Get target position (character position)
     const targetPosition = target.position.clone();
     
-    // Calculate desired camera position
-    const desiredPosition = targetPosition.clone().sub(offset);
+    // Calculate camera position behind and above the character
+    // Using negative sin/cos for the X/Z to position camera behind character
+    const cameraX = targetPosition.x - Math.sin(currentRotationY) * cameraParams.distance;
+    const cameraY = targetPosition.y + cameraParams.height; // Position camera above character
+    const cameraZ = targetPosition.z - Math.cos(currentRotationY) * cameraParams.distance;
+    
+    // Set desired camera position
+    const desiredPosition = new THREE.Vector3(cameraX, cameraY, cameraZ);
     
     // Smoothly move camera to desired position
     camera.position.lerp(desiredPosition, cameraParams.smoothness);
