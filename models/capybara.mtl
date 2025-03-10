@@ -1,0 +1,10 @@
+# Capybara material file
+# Created for capy-swim3d project
+
+newmtl capybara
+Ka 0.2 0.2 0.2
+Kd 0.6 0.4 0.2
+Ks 0.1 0.1 0.1
+Ns 10.0
+d 1.0
+map_Kd textures/capybara_texture.png
