@@ -115,13 +115,13 @@ export function getInput() {
         up: 0
     };
     
-    // Forward/backward movement (corrected direction)
+    // Forward/backward movement
     if (keys.forward) direction.forward += 1; // W key moves forward (positive)
     if (keys.backward) direction.forward -= 1; // S key moves backward (negative)
     
-    // Left/right movement
-    if (keys.right) direction.right += 1;
-    if (keys.left) direction.right -= 1;
+    // Left/right movement (corrected direction)
+    if (keys.right) direction.right += 1; // D key moves right (positive)
+    if (keys.left) direction.right -= 1; // A key moves left (negative)
     
     // Jump
     if (keys.jump) direction.up = 1;
