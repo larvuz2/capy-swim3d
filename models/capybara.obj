@@ -1,0 +1,56 @@
+# Simple capybara OBJ model
+# Created for capy-swim3d project
+
+mtllib capybara.mtl
+
+# Vertices
+v -0.5 0.0 0.8  # 1 - nose
+v 0.5 0.0 0.8   # 2 - nose
+v -0.5 0.5 0.5  # 3 - head
+v 0.5 0.5 0.5   # 4 - head
+v -0.5 0.5 -0.5 # 5 - body
+v 0.5 0.5 -0.5  # 6 - body
+v -0.5 0.0 -0.8 # 7 - rear
+v 0.5 0.0 -0.8  # 8 - rear
+
+# Texture coordinates
+vt 0.0 0.0
+vt 1.0 0.0
+vt 0.0 1.0
+vt 1.0 1.0
+
+# Normals
+vn 0.0 1.0 0.0  # up
+vn 0.0 -1.0 0.0 # down
+vn 0.0 0.0 1.0  # front
+vn 1.0 0.0 0.0  # right
+vn 0.0 0.0 -1.0 # back
+vn -1.0 0.0 0.0 # left
+
+# Material
+usemtl capybara
+
+# Faces
+# Top
+f 3/1/1 4/2/1 6/4/1
+f 3/1/1 6/4/1 5/3/1
+
+# Front (nose)
+f 1/1/3 2/2/3 4/4/3
+f 1/1/3 4/4/3 3/3/3
+
+# Right side
+f 2/1/4 8/2/4 6/4/4
+f 2/1/4 6/4/4 4/3/4
+
+# Back
+f 7/1/5 8/2/5 6/4/5
+f 7/1/5 6/4/5 5/3/5
+
+# Left side
+f 1/1/6 3/2/6 5/4/6
+f 1/1/6 5/4/6 7/3/6
+
+# Bottom
+f 1/1/2 7/2/2 8/4/2
+f 1/1/2 8/4/2 2/3/2
