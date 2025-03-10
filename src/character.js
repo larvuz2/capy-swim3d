@@ -28,7 +28,8 @@ export function createCharacter(scene, world) {
         opacity: 0 // Make the capsule invisible
     });
     const capsuleMesh = new THREE.Mesh(capsuleGeometry, capsuleMaterial);
-    capsuleMesh.castShadow = true;
+    capsuleMesh.castShadow = false; // Disable shadow casting for the invisible capsule
+    capsuleMesh.receiveShadow = false; // Disable shadow receiving for the invisible capsule
     capsuleMesh.position.y = 0.5; // Offset to align with physics body
     characterGroup.add(capsuleMesh);
     
@@ -68,11 +69,23 @@ function loadCapybaraModel(capsuleMesh) {
 function loadGLTFModel(capsuleMesh) {
     const loader = new GLTFLoader();
     
+    // Log loading attempt for debugging
+    console.log('Attempting to load capybara.glb model...');
+    
     loader.load('models/capybara.glb', (gltf) => {
+        console.log('Successfully loaded capybara.glb model!');
         capybaraModel = gltf.scene;
         
         // Add the capybara model to the capsule mesh
         capsuleMesh.add(capybaraModel);
+        
+        // Enable shadows for the model
+        capybaraModel.traverse((child) => {
+            if (child.isMesh) {
+                child.castShadow = true;
+                child.receiveShadow = true;
+            }
+        });
         
         // Adjust position if needed
         // capybaraModel.position.set(0, -0.5, 0);
@@ -159,11 +172,22 @@ function tryAlternativeAnimationFormats(model) {
 function loadFBXModel(capsuleMesh) {
     const loader = new FBXLoader();
     
+    console.log('Attempting to load capybara.fbx model...');
+    
     loader.load('models/capybara.fbx', (fbx) => {
+        console.log('Successfully loaded capybara.fbx model!');
         capybaraModel = fbx;
         
         // Add the capybara model to the capsule mesh
         capsuleMesh.add(fbx);
+        
+        // Enable shadows for the model
+        fbx.traverse((child) => {
+            if (child.isMesh) {
+                child.castShadow = true;
+                child.receiveShadow = true;
+            }
+        });
         
         // Adjust position if needed
         // fbx.position.set(0, -0.5, 0);
@@ -197,6 +221,8 @@ function loadFBXModel(capsuleMesh) {
 function loadOBJModel(capsuleMesh) {
     const mtlLoader = new MTLLoader();
     
+    console.log('Attempting to load capybara.obj model with materials...');
+    
     mtlLoader.load('models/capybara.mtl', (materials) => {
         materials.preload();
         
@@ -204,10 +230,19 @@ function loadOBJModel(capsuleMesh) {
         objLoader.setMaterials(materials);
         
         objLoader.load('models/capybara.obj', (obj) => {
+            console.log('Successfully loaded capybara.obj model with materials!');
             capybaraModel = obj;
             
             // Add the capybara model to the capsule mesh
             capsuleMesh.add(obj);
+            
+            // Enable shadows for the model
+            obj.traverse((child) => {
+                if (child.isMesh) {
+                    child.castShadow = true;
+                    child.receiveShadow = true;
+                }
+            });
             
             // Adjust position if needed
             // obj.position.set(0, -0.5, 0);
@@ -230,10 +265,30 @@ function loadOBJModel(capsuleMesh) {
     }, undefined, (error) => {
         console.warn('Error loading MTL, trying OBJ without materials:', error);
         
+        console.log('Attempting to load capybara.obj model without materials...');
+        
         const objLoader = new OBJLoader();
         objLoader.load('models/capybara.obj', (obj) => {
+            console.log('Successfully loaded capybara.obj model without materials!');
             capybaraModel = obj;
             capsuleMesh.add(obj);
+            
+            // Enable shadows for the model
+            obj.traverse((child) => {
+                if (child.isMesh) {
+                    child.castShadow = true;
+                    child.receiveShadow = true;
+                    
+                    // Apply a default material if no material is present
+                    if (!child.material) {
+                        child.material = new THREE.MeshStandardMaterial({
+                            color: 0x8B4513, // Brown color for capybara
+                            roughness: 0.7,
+                            metalness: 0.1
+                        });
+                    }
+                }
+            });
             
             // OBJ doesn't support animations, so try to load separate animation
             loadSeparateAnimation(obj);
@@ -248,12 +303,23 @@ function loadOBJModel(capsuleMesh) {
 function loadDAEModel(capsuleMesh) {
     const loader = new ColladaLoader();
     
+    console.log('Attempting to load capybara.dae model...');
+    
     loader.load('models/capybara.dae', (collada) => {
+        console.log('Successfully loaded capybara.dae model!');
         const dae = collada.scene;
         capybaraModel = dae;
         
         // Add the capybara model to the capsule mesh
         capsuleMesh.add(dae);
+        
+        // Enable shadows for the model
+        dae.traverse((child) => {
+            if (child.isMesh) {
+                child.castShadow = true;
+                child.receiveShadow = true;
+            }
+        });
         
         // Adjust position if needed
         // dae.position.set(0, -0.5, 0);
@@ -279,7 +345,33 @@ function loadDAEModel(capsuleMesh) {
     // Error callback
     (error) => {
         console.error('All model loading attempts failed:', error);
+        
+        // Create a simple fallback model if all loading attempts fail
+        createFallbackModel(capsuleMesh);
     });
+}
+
+// Create a simple fallback model if all loading attempts fail
+function createFallbackModel(capsuleMesh) {
+    console.log('Creating fallback capybara model...');
+    
+    // Create a simple shape to represent the capybara
+    const geometry = new THREE.SphereGeometry(0.5, 16, 16);
+    const material = new THREE.MeshStandardMaterial({
+        color: 0x8B4513, // Brown color for capybara
+        roughness: 0.7,
+        metalness: 0.1
+    });
+    
+    const fallbackModel = new THREE.Mesh(geometry, material);
+    fallbackModel.castShadow = true;
+    fallbackModel.receiveShadow = true;
+    
+    // Add the fallback model to the capsule mesh
+    capsuleMesh.add(fallbackModel);
+    
+    capybaraModel = fallbackModel;
+    console.log('Fallback model created');
 }
 
 // Add details to the character mesh
