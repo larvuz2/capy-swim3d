@@ -1,0 +1,7 @@
+This is a placeholder for the capybara texture.
+
+Since we can't upload binary files directly through the API, you'll need to create a simple texture file named 'capybara_texture.png' in this directory.
+
+The texture should be a simple brown color with some details for the capybara's face and body.
+
+Alternatively, the code has been updated to handle missing textures gracefully by applying a default brown material.
