@@ -3,11 +3,11 @@ import { params } from './gui.js';
 
 // Camera parameters
 export const cameraParams = {
-    distance: 10,      // Distance behind character
-    height: 5,         // Height above character
-    smoothness: 0.1,   // Camera smoothness (0-1)
+    distance: 5.4,      // Distance behind character (updated)
+    height: 1.5,        // Height above character (updated)
+    smoothness: 0.1,    // Camera smoothness (0-1)
     rotationSpeed: 0.002, // Mouse rotation sensitivity
-    lookAtHeight: 1.5, // Height offset for lookAt point
+    lookAtHeight: 1.9,  // Height offset for lookAt point (updated)
     minPolarAngle: 0.1,  // Minimum angle (looking up)
     maxPolarAngle: Math.PI / 2 - 0.1, // Maximum angle (looking down)
 };
