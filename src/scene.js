@@ -55,6 +55,15 @@ export function initScene() {
     // Add some obstacles
     addObstacles(scene);
     
+    // Remove any axis helpers that might be in the scene
+    scene.traverse((object) => {
+        if (object instanceof THREE.AxesHelper || 
+            object instanceof THREE.GridHelper || 
+            (object instanceof THREE.LineSegments && object.type === 'LineSegments')) {
+            scene.remove(object);
+        }
+    });
+    
     // Handle window resize
     window.addEventListener('resize', () => {
         // Update camera aspect ratio

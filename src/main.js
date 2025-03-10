@@ -29,6 +29,16 @@ async function init() {
     // Create a clock for animation timing
     const clock = new THREE.Clock();
     
+    // Make sure no axis helpers are visible
+    scene.traverse((object) => {
+        if (object instanceof THREE.AxesHelper || 
+            object instanceof THREE.GridHelper || 
+            (object instanceof THREE.LineSegments && object.type === 'LineSegments')) {
+            scene.remove(object);
+            console.log('Removed helper object from scene');
+        }
+    });
+    
     // Animation loop
     function animate() {
         requestAnimationFrame(animate);

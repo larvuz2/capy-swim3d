@@ -71,14 +71,32 @@ function loadGLTFModel(capsuleMesh) {
     loader.load('models/capybara.glb', (gltf) => {
         capybaraModel = gltf.scene;
         
+        // Make sure all materials in the model are visible and not transparent
+        capybaraModel.traverse((node) => {
+            if (node.isMesh) {
+                // Ensure material is not transparent
+                if (node.material) {
+                    node.material.transparent = false;
+                    node.material.opacity = 1.0;
+                    node.material.needsUpdate = true;
+                    
+                    // Enable shadows
+                    node.castShadow = true;
+                    node.receiveShadow = true;
+                }
+            }
+        });
+        
         // Add the capybara model to the capsule mesh
         capsuleMesh.add(capybaraModel);
         
         // Adjust position if needed
-        // capybaraModel.position.set(0, -0.5, 0);
+        capybaraModel.position.set(0, -0.5, 0);
         
         // Adjust scale if needed
-        // capybaraModel.scale.set(0.5, 0.5, 0.5);
+        capybaraModel.scale.set(1, 1, 1);
+        
+        console.log('Capybara model loaded successfully');
         
         // Set up animations if available in the model
         if (gltf.animations && gltf.animations.length > 0) {
