@@ -22,15 +22,21 @@ export function initScene() {
     });
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    
+    // Enable and configure shadows
     renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap; // Softer shadows
     
     // Add lights
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.6); // Increased ambient light
     scene.add(ambientLight);
     
-    const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+    // Main directional light (sun)
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 1.2); // Increased intensity
     directionalLight.position.set(5, 10, 5);
     directionalLight.castShadow = true;
+    
+    // Improve shadow quality
     directionalLight.shadow.mapSize.width = 2048;
     directionalLight.shadow.mapSize.height = 2048;
     directionalLight.shadow.camera.near = 0.5;
@@ -39,7 +45,15 @@ export function initScene() {
     directionalLight.shadow.camera.right = 20;
     directionalLight.shadow.camera.top = 20;
     directionalLight.shadow.camera.bottom = -20;
+    directionalLight.shadow.bias = -0.0005; // Reduce shadow acne
+    
     scene.add(directionalLight);
+    
+    // Add a fill light from the opposite direction
+    const fillLight = new THREE.DirectionalLight(0xffffff, 0.4);
+    fillLight.position.set(-5, 8, -5);
+    fillLight.castShadow = false; // Only main light casts shadows
+    scene.add(fillLight);
     
     // Create a ground plane (visual only, physics will be added separately)
     const groundGeometry = new THREE.PlaneGeometry(100, 100);
