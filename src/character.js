@@ -12,6 +12,8 @@ import { getCameraRotation } from './camera.js';
 let mixer;
 // Reference to the loaded model
 let capybaraModel;
+// Debug flag
+const DEBUG = true;
 
 // Create the character
 export function createCharacter(scene, world) {
@@ -33,8 +35,8 @@ export function createCharacter(scene, world) {
     capsuleMesh.position.y = 0.5; // Offset to align with physics body
     characterGroup.add(capsuleMesh);
     
-    // Load the capybara model
-    loadCapybaraModel(capsuleMesh);
+    // Load the capybara model - start with OBJ since that's what we have
+    loadOBJModel(capsuleMesh);
     
     // Add the character to the scene
     scene.add(characterGroup);
@@ -61,23 +63,162 @@ export function createCharacter(scene, world) {
 
 // Load the capybara model and add it to the capsule mesh
 function loadCapybaraModel(capsuleMesh) {
-    // Try to load the model in different formats, starting with GLTF/GLB
-    loadGLTFModel(capsuleMesh);
+    // Start with OBJ since that's what we have available
+    loadOBJModel(capsuleMesh);
 }
 
-// Load GLTF/GLB model
+// Load OBJ model as primary format
+function loadOBJModel(capsuleMesh) {
+    const mtlLoader = new MTLLoader();
+    
+    if (DEBUG) console.log('Attempting to load capybara.obj model with materials...');
+    
+    // Set texture path to ensure textures are found
+    mtlLoader.setPath('models/');
+    
+    mtlLoader.load('capybara.mtl', (materials) => {
+        materials.preload();
+        
+        if (DEBUG) console.log('Successfully loaded MTL materials');
+        
+        // Set texture path for the materials
+        materials.materials.capybara.map.image.src = 'models/textures/capybara_texture.png';
+        
+        const objLoader = new OBJLoader();
+        objLoader.setMaterials(materials);
+        objLoader.setPath('models/');
+        
+        objLoader.load('capybara.obj', (obj) => {
+            if (DEBUG) console.log('Successfully loaded capybara.obj model with materials!');
+            capybaraModel = obj;
+            
+            // Add the capybara model to the capsule mesh
+            capsuleMesh.add(obj);
+            
+            // Scale the model to make it more visible
+            obj.scale.set(1.5, 1.5, 1.5);
+            
+            // Position the model to align with the capsule
+            obj.position.set(0, -0.5, 0);
+            
+            // Enable shadows for the model
+            obj.traverse((child) => {
+                if (child.isMesh) {
+                    child.castShadow = true;
+                    child.receiveShadow = true;
+                    
+                    // Make sure material is properly set
+                    if (!child.material) {
+                        child.material = new THREE.MeshStandardMaterial({
+                            color: 0x8B4513, // Brown color for capybara
+                            roughness: 0.7,
+                            metalness: 0.1
+                        });
+                    }
+                    
+                    // Log material info for debugging
+                    if (DEBUG) console.log('Mesh material:', child.material);
+                }
+            });
+            
+            if (DEBUG) console.log('Capybara model added to scene with scale:', obj.scale);
+            
+            // OBJ doesn't support animations, so try to load separate animation file
+            loadSeparateAnimation(obj);
+        }, 
+        // Progress callback
+        (xhr) => {
+            if (DEBUG) console.log('OBJ: ' + (xhr.loaded / xhr.total * 100) + '% loaded');
+        },
+        // Error callback
+        (error) => {
+            console.warn('Error loading OBJ model with materials:', error);
+            loadOBJWithoutMaterials(capsuleMesh);
+        });
+    }, 
+    // Progress callback for MTL
+    (xhr) => {
+        if (DEBUG) console.log('MTL: ' + (xhr.loaded / xhr.total * 100) + '% loaded');
+    },
+    // Error callback for MTL
+    (error) => {
+        console.warn('Error loading MTL, trying OBJ without materials:', error);
+        loadOBJWithoutMaterials(capsuleMesh);
+    });
+}
+
+// Load OBJ without materials as fallback
+function loadOBJWithoutMaterials(capsuleMesh) {
+    if (DEBUG) console.log('Attempting to load capybara.obj model without materials...');
+    
+    const objLoader = new OBJLoader();
+    objLoader.setPath('models/');
+    
+    objLoader.load('capybara.obj', (obj) => {
+        if (DEBUG) console.log('Successfully loaded capybara.obj model without materials!');
+        capybaraModel = obj;
+        
+        // Add the capybara model to the capsule mesh
+        capsuleMesh.add(obj);
+        
+        // Scale the model to make it more visible
+        obj.scale.set(1.5, 1.5, 1.5);
+        
+        // Position the model to align with the capsule
+        obj.position.set(0, -0.5, 0);
+        
+        // Enable shadows for the model and apply a default material
+        obj.traverse((child) => {
+            if (child.isMesh) {
+                child.castShadow = true;
+                child.receiveShadow = true;
+                
+                // Apply a default material
+                child.material = new THREE.MeshStandardMaterial({
+                    color: 0x8B4513, // Brown color for capybara
+                    roughness: 0.7,
+                    metalness: 0.1
+                });
+                
+                if (DEBUG) console.log('Applied default material to mesh');
+            }
+        });
+        
+        if (DEBUG) console.log('Capybara model added to scene without materials');
+        
+        // OBJ doesn't support animations, so try to load separate animation file
+        loadSeparateAnimation(obj);
+    }, 
+    // Progress callback
+    (xhr) => {
+        if (DEBUG) console.log('OBJ (no materials): ' + (xhr.loaded / xhr.total * 100) + '% loaded');
+    },
+    // Error callback
+    (error) => {
+        console.warn('Error loading OBJ model without materials:', error);
+        // Try other formats as fallback
+        loadGLTFModel(capsuleMesh);
+    });
+}
+
+// Load GLTF/GLB model as fallback
 function loadGLTFModel(capsuleMesh) {
     const loader = new GLTFLoader();
     
-    // Log loading attempt for debugging
-    console.log('Attempting to load capybara.glb model...');
+    if (DEBUG) console.log('Attempting to load capybara.glb model...');
     
     loader.load('models/capybara.glb', (gltf) => {
-        console.log('Successfully loaded capybara.glb model!');
+        if (DEBUG) console.log('Successfully loaded capybara.glb model!');
         capybaraModel = gltf.scene;
         
         // Add the capybara model to the capsule mesh
         capsuleMesh.add(capybaraModel);
+        
+        // Scale the model to make it more visible
+        capybaraModel.scale.set(1.5, 1.5, 1.5);
+        
+        // Position the model to align with the capsule
+        capybaraModel.position.set(0, -0.5, 0);
         
         // Enable shadows for the model
         capybaraModel.traverse((child) => {
@@ -87,20 +228,13 @@ function loadGLTFModel(capsuleMesh) {
             }
         });
         
-        // Adjust position if needed
-        // capybaraModel.position.set(0, -0.5, 0);
-        
-        // Adjust scale if needed
-        // capybaraModel.scale.set(0.5, 0.5, 0.5);
-        
         // Set up animations if available in the model
         if (gltf.animations && gltf.animations.length > 0) {
             mixer = new THREE.AnimationMixer(capybaraModel);
             const idleAction = mixer.clipAction(gltf.animations[0]); // Assumes first animation is idle
             idleAction.play();
             
-            // Log available animations for debugging
-            console.log('Loaded animations from model:', gltf.animations);
+            if (DEBUG) console.log('Loaded animations from model:', gltf.animations);
         } else {
             // If no animations in the model, try to load separate animation file
             loadSeparateAnimation(capybaraModel);
@@ -108,7 +242,7 @@ function loadGLTFModel(capsuleMesh) {
     }, 
     // Progress callback
     (xhr) => {
-        console.log('GLTF: ' + (xhr.loaded / xhr.total * 100) + '% loaded');
+        if (DEBUG) console.log('GLTF: ' + (xhr.loaded / xhr.total * 100) + '% loaded');
     },
     // Error callback
     (error) => {
@@ -117,11 +251,112 @@ function loadGLTFModel(capsuleMesh) {
     });
 }
 
+// Load FBX model as fallback
+function loadFBXModel(capsuleMesh) {
+    const loader = new FBXLoader();
+    
+    if (DEBUG) console.log('Attempting to load capybara.fbx model...');
+    
+    loader.load('models/capybara.fbx', (fbx) => {
+        if (DEBUG) console.log('Successfully loaded capybara.fbx model!');
+        capybaraModel = fbx;
+        
+        // Add the capybara model to the capsule mesh
+        capsuleMesh.add(fbx);
+        
+        // Scale the model to make it more visible
+        fbx.scale.set(0.015, 0.015, 0.015); // FBX models often need scaling
+        
+        // Position the model to align with the capsule
+        fbx.position.set(0, -0.5, 0);
+        
+        // Enable shadows for the model
+        fbx.traverse((child) => {
+            if (child.isMesh) {
+                child.castShadow = true;
+                child.receiveShadow = true;
+            }
+        });
+        
+        // Set up animations if available
+        if (fbx.animations && fbx.animations.length > 0) {
+            mixer = new THREE.AnimationMixer(fbx);
+            const idleAction = mixer.clipAction(fbx.animations[0]);
+            idleAction.play();
+            if (DEBUG) console.log('Loaded animations from FBX model');
+        } else {
+            // If no animations in the model, try to load separate animation file
+            loadSeparateAnimation(fbx);
+        }
+    }, 
+    // Progress callback
+    (xhr) => {
+        if (DEBUG) console.log('FBX: ' + (xhr.loaded / xhr.total * 100) + '% loaded');
+    },
+    // Error callback
+    (error) => {
+        console.warn('Error loading FBX model, trying DAE:', error);
+        loadDAEModel(capsuleMesh);
+    });
+}
+
+// Load DAE (Collada) model as final fallback
+function loadDAEModel(capsuleMesh) {
+    const loader = new ColladaLoader();
+    
+    if (DEBUG) console.log('Attempting to load capybara.dae model...');
+    
+    loader.load('models/capybara.dae', (collada) => {
+        if (DEBUG) console.log('Successfully loaded capybara.dae model!');
+        const dae = collada.scene;
+        capybaraModel = dae;
+        
+        // Add the capybara model to the capsule mesh
+        capsuleMesh.add(dae);
+        
+        // Scale the model to make it more visible
+        dae.scale.set(1.5, 1.5, 1.5);
+        
+        // Position the model to align with the capsule
+        dae.position.set(0, -0.5, 0);
+        
+        // Enable shadows for the model
+        dae.traverse((child) => {
+            if (child.isMesh) {
+                child.castShadow = true;
+                child.receiveShadow = true;
+            }
+        });
+        
+        // Check if there are animations in the DAE file
+        if (collada.animations && collada.animations.length > 0) {
+            mixer = new THREE.AnimationMixer(dae);
+            const idleAction = mixer.clipAction(collada.animations[0]);
+            idleAction.play();
+            if (DEBUG) console.log('Loaded animations from DAE model');
+        } else {
+            // If no animations in the model, try to load separate animation file
+            loadSeparateAnimation(dae);
+        }
+    }, 
+    // Progress callback
+    (xhr) => {
+        if (DEBUG) console.log('DAE: ' + (xhr.loaded / xhr.total * 100) + '% loaded');
+    },
+    // Error callback
+    (error) => {
+        console.error('All model loading attempts failed:', error);
+        
+        // Create a simple fallback model if all loading attempts fail
+        createFallbackModel(capsuleMesh);
+    });
+}
+
 // Load separate animation file
 function loadSeparateAnimation(model) {
     if (!model) return;
     
-    console.log('Loading separate animation file...');
+    if (DEBUG) console.log('Loading separate animation file...');
     
     // Try to load the idle animation from FBX file
     const animLoader = new FBXLoader();
@@ -134,14 +369,14 @@ function loadSeparateAnimation(model) {
             const idleClip = animationObject.animations[0];
             const idleAction = mixer.clipAction(idleClip);
             idleAction.play();
-            console.log('Loaded separate idle animation');
+            if (DEBUG) console.log('Loaded separate idle animation');
         } else {
             console.warn('No animations found in the separate animation file');
         }
     }, 
     // Progress callback
     (xhr) => {
-        console.log('Animation: ' + (xhr.loaded / xhr.total * 100) + '% loaded');
+        if (DEBUG) console.log('Animation: ' + (xhr.loaded / xhr.total * 100) + '% loaded');
     },
     // Error callback
     (error) => {
@@ -161,202 +396,19 @@ function tryAlternativeAnimationFormats(model) {
             mixer = new THREE.AnimationMixer(model);
             const idleAction = mixer.clipAction(gltf.animations[0]);
             idleAction.play();
-            console.log('Loaded GLTF animation');
+            if (DEBUG) console.log('Loaded GLTF animation');
         }
     }, undefined, (error) => {
         console.warn('Error loading GLTF animation:', error);
     });
 }
 
-// Load FBX model as fallback
-function loadFBXModel(capsuleMesh) {
-    const loader = new FBXLoader();
-    
-    console.log('Attempting to load capybara.fbx model...');
-    
-    loader.load('models/capybara.fbx', (fbx) => {
-        console.log('Successfully loaded capybara.fbx model!');
-        capybaraModel = fbx;
-        
-        // Add the capybara model to the capsule mesh
-        capsuleMesh.add(fbx);
-        
-        // Enable shadows for the model
-        fbx.traverse((child) => {
-            if (child.isMesh) {
-                child.castShadow = true;
-                child.receiveShadow = true;
-            }
-        });
-        
-        // Adjust position if needed
-        // fbx.position.set(0, -0.5, 0);
-        
-        // Adjust scale if needed
-        // fbx.scale.set(0.01, 0.01, 0.01); // FBX models often need scaling
-        
-        // Set up animations if available
-        if (fbx.animations && fbx.animations.length > 0) {
-            mixer = new THREE.AnimationMixer(fbx);
-            const idleAction = mixer.clipAction(fbx.animations[0]);
-            idleAction.play();
-            console.log('Loaded animations from FBX model');
-        } else {
-            // If no animations in the model, try to load separate animation file
-            loadSeparateAnimation(fbx);
-        }
-    }, 
-    // Progress callback
-    (xhr) => {
-        console.log('FBX: ' + (xhr.loaded / xhr.total * 100) + '% loaded');
-    },
-    // Error callback
-    (error) => {
-        console.warn('Error loading FBX model, trying OBJ:', error);
-        loadOBJModel(capsuleMesh);
-    });
-}
-
-// Load OBJ model as fallback
-function loadOBJModel(capsuleMesh) {
-    const mtlLoader = new MTLLoader();
-    
-    console.log('Attempting to load capybara.obj model with materials...');
-    
-    mtlLoader.load('models/capybara.mtl', (materials) => {
-        materials.preload();
-        
-        const objLoader = new OBJLoader();
-        objLoader.setMaterials(materials);
-        
-        objLoader.load('models/capybara.obj', (obj) => {
-            console.log('Successfully loaded capybara.obj model with materials!');
-            capybaraModel = obj;
-            
-            // Add the capybara model to the capsule mesh
-            capsuleMesh.add(obj);
-            
-            // Enable shadows for the model
-            obj.traverse((child) => {
-                if (child.isMesh) {
-                    child.castShadow = true;
-                    child.receiveShadow = true;
-                }
-            });
-            
-            // Adjust position if needed
-            // obj.position.set(0, -0.5, 0);
-            
-            // Adjust scale if needed
-            // obj.scale.set(0.5, 0.5, 0.5);
-            
-            // OBJ doesn't support animations, so try to load separate animation
-            loadSeparateAnimation(obj);
-        }, 
-        // Progress callback
-        (xhr) => {
-            console.log('OBJ: ' + (xhr.loaded / xhr.total * 100) + '% loaded');
-        },
-        // Error callback
-        (error) => {
-            console.warn('Error loading OBJ model, trying DAE:', error);
-            loadDAEModel(capsuleMesh);
-        });
-    }, undefined, (error) => {
-        console.warn('Error loading MTL, trying OBJ without materials:', error);
-        
-        console.log('Attempting to load capybara.obj model without materials...');
-        
-        const objLoader = new OBJLoader();
-        objLoader.load('models/capybara.obj', (obj) => {
-            console.log('Successfully loaded capybara.obj model without materials!');
-            capybaraModel = obj;
-            capsuleMesh.add(obj);
-            
-            // Enable shadows for the model
-            obj.traverse((child) => {
-                if (child.isMesh) {
-                    child.castShadow = true;
-                    child.receiveShadow = true;
-                    
-                    // Apply a default material if no material is present
-                    if (!child.material) {
-                        child.material = new THREE.MeshStandardMaterial({
-                            color: 0x8B4513, // Brown color for capybara
-                            roughness: 0.7,
-                            metalness: 0.1
-                        });
-                    }
-                }
-            });
-            
-            // OBJ doesn't support animations, so try to load separate animation
-            loadSeparateAnimation(obj);
-        }, undefined, (error) => {
-            console.warn('Error loading OBJ model, trying DAE:', error);
-            loadDAEModel(capsuleMesh);
-        });
-    });
-}
-
-// Load DAE (Collada) model as final fallback
-function loadDAEModel(capsuleMesh) {
-    const loader = new ColladaLoader();
-    
-    console.log('Attempting to load capybara.dae model...');
-    
-    loader.load('models/capybara.dae', (collada) => {
-        console.log('Successfully loaded capybara.dae model!');
-        const dae = collada.scene;
-        capybaraModel = dae;
-        
-        // Add the capybara model to the capsule mesh
-        capsuleMesh.add(dae);
-        
-        // Enable shadows for the model
-        dae.traverse((child) => {
-            if (child.isMesh) {
-                child.castShadow = true;
-                child.receiveShadow = true;
-            }
-        });
-        
-        // Adjust position if needed
-        // dae.position.set(0, -0.5, 0);
-        
-        // Adjust scale if needed
-        // dae.scale.set(0.5, 0.5, 0.5);
-        
-        // Check if there are animations in the DAE file
-        if (collada.animations && collada.animations.length > 0) {
-            mixer = new THREE.AnimationMixer(dae);
-            const idleAction = mixer.clipAction(collada.animations[0]);
-            idleAction.play();
-            console.log('Loaded animations from DAE model');
-        } else {
-            // If no animations in the model, try to load separate animation file
-            loadSeparateAnimation(dae);
-        }
-    }, 
-    // Progress callback
-    (xhr) => {
-        console.log('DAE: ' + (xhr.loaded / xhr.total * 100) + '% loaded');
-    },
-    // Error callback
-    (error) => {
-        console.error('All model loading attempts failed:', error);
-        
-        // Create a simple fallback model if all loading attempts fail
-        createFallbackModel(capsuleMesh);
-    });
-}
-
 // Create a simple fallback model if all loading attempts fail
 function createFallbackModel(capsuleMesh) {
-    console.log('Creating fallback capybara model...');
+    if (DEBUG) console.log('Creating fallback capybara model...');
     
     // Create a simple shape to represent the capybara
-    const geometry = new THREE.SphereGeometry(0.5, 16, 16);
+    const geometry = new THREE.BoxGeometry(1, 0.8, 1.5); // More capybara-like proportions
     const material = new THREE.MeshStandardMaterial({
         color: 0x8B4513, // Brown color for capybara
         roughness: 0.7,
@@ -367,17 +419,14 @@ function createFallbackModel(capsuleMesh) {
     fallbackModel.castShadow = true;
     fallbackModel.receiveShadow = true;
     
+    // Position the fallback model
+    fallbackModel.position.set(0, 0, 0);
+    
     // Add the fallback model to the capsule mesh
     capsuleMesh.add(fallbackModel);
     
     capybaraModel = fallbackModel;
-    console.log('Fallback model created');
-}
-
-// Add details to the character mesh
-function addCharacterDetails(characterGroup) {
-    // This function is no longer needed as we're using the capybara model
-    // Keeping it for backward compatibility but not adding any details
+    if (DEBUG) console.log('Fallback model created and added to scene');
 }
 
 // Update the character based on input
